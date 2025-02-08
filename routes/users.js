@@ -7,23 +7,39 @@ const { stringify } = require('jade/lib/utils');
 
 // Get All Users
 router.get('/get-all', async function (req, res) {
-  const users = await prisma.user.findMany();
-  res.json(users);
+  const { id } = req.params;
+  const users = await prisma.user.findUnique({
+    where: { id: parseInt(id) },
+  });
+
+  if (users == null || users == undefined) {
+    res.json('no user found');
+  } else {
+    res.send(users);
+  }
 });
 
 // Create User
 router.post('/create', async function (req, res) {
   const { name, email, password } = req.body;
-  const hashPassword = await bcrypt.hash(password, 10);
-  const stringPassword = await stringify(hashPassword);
-  const user = await prisma.user.create({
-    data: {
-      username: name,
-      email,
-      password: stringPassword,
-    },
-  });
-  res.send(user);
+  name === ''
+    ? res.json('Please fill the name field')
+    : email === ''
+      ? res.json('Please fill the email field')
+      : password === ''
+        ? res.json('Please fill the password field')
+        : async () => {
+            const hashPassword = await bcrypt.hash(password, 10);
+            const stringPassword = stringify(hashPassword);
+            const user = await prisma.user.create({
+              data: {
+                username: name,
+                email,
+                password: stringPassword,
+              },
+            });
+            res.send(user);
+          };
 });
 
 // Update User
@@ -32,28 +48,44 @@ router.put('/update/:id', async function (req, res) {
   const { name, email, password } = req.body;
   const hashPassword = bcrypt.hash(password, 10);
   const stringPassword = stringify(hashPassword);
-  const user = await prisma.user.update({
-    where: {
-      id: parseInt(id),
-    },
-    data: {
-      username: name,
-      email,
-      password: stringPassword,
-    },
-  });
-  res.send(user);
+  name === ''
+    ? res.json('Please fill the name field')
+    : email === ''
+      ? res.json('Please fill the email field')
+      : password === ''
+        ? res.json('Please fill the password field')
+        : async () => {
+            const user = await prisma.user.update({
+              where: {
+                id: parseInt(id),
+              },
+              data: {
+                username: name,
+                email,
+                password: stringPassword,
+              },
+            });
+            res.send(user);
+          };
 });
 
 // Delete User
 router.delete('/delete/:id', async function (req, res) {
   const { id } = req.params;
-  const user = await prisma.user.delete({
+  const userExists = await prisma.user.findUnique({
     where: {
       id: parseInt(id),
     },
   });
-  res.send(user);
-});
 
-module.exports = router;
+  userExists === null
+    ? res.json(`user with id ${id} not found`)
+    : async () => {
+        const user = await prisma.user.delete({
+          where: {
+            id: parseInt(id),
+          },
+        });
+        res.send(user);
+      };
+});
