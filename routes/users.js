@@ -70,6 +70,7 @@ router.put('/update/:id', async function (req, res) {
 });
 
 // Delete User
+
 router.delete('/delete/:id', async function (req, res) {
   const { id } = req.params;
   const userExists = await prisma.user.findUnique({
