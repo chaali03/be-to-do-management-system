@@ -12,7 +12,7 @@ var logger = require('morgan');
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var taskRouter = require('./routes/task');
-var userTaskRouter = require('./routes/usertask');
+var userTaskRouter = require('./routes/userTask');
 
 // Create Express App
 var app = express();
@@ -59,9 +59,14 @@ app.use(function (err, req, res) {
 // Set port
 const port = process.env.APP_PORT || 4000;
 
-// Start server
-app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
-});
+// Check Env
+const env = process.env.ENV_TYPE || 'production';
+
+if (env === 'development') {
+  // Start server
+  app.listen(port, () => {
+    console.log(`Server is running on port ${port}`);
+  });
+}
 
 module.exports = app;
